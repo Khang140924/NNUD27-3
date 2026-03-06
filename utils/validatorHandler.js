@@ -24,7 +24,7 @@ module.exports = {
         body('password').isStrongPassword(options.password).withMessage(`password dai it nhat ${options.password.minLength} ki tu, trong do co it nhat ${options.password.minNumbers} so ${options.password.minUppercase} chu hoa ${options.password.minLowercase} chu thuong ${options.password.minSymbols} ki tu dac biet`),
     ],
     RegisterValidator: [
-        body('email').notEmpty().withMessage('email sai dinh dang').normalizeEmail(),
+        body('email').notEmpty().withMessage("email khong duoc rong").bail().isEmail.withMessage('email sai dinh dang').normalizeEmail(),
         body('username').notEmpty().isAlphanumeric().withMessage("username khong duoc chua ki tu dac biet"),
         body('password').notEmpty().withMessage().isStrongPassword(options.password).withMessage(`password dai it nhat ${options.password.minLength} ki tu, trong do co it nhat ${options.password.minNumbers} so ${options.password.minUppercase} chu hoa ${options.password.minLowercase} chu thuong ${options.password.minSymbols} ki tu dac biet`),
     ]
