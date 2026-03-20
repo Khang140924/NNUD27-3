@@ -71,8 +71,7 @@ router.post('/', async function (req, res, next) {
     await newObj.save({ session })
     console.log(newObj);
     let newInventory = new inventorySchema({
-      product: newObj._id,
-      stock: -1
+      product: newObj._id
     })
     await newInventory.save({ session })
     await session.commitTransaction();

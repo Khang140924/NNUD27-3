@@ -6,20 +6,39 @@ let bcrypt = require('bcrypt')
 let jwt = require('jsonwebtoken')
 let { checkLogin } = require('../utils/authHandler')
 let crypto = require('crypto')
-let {sendMail} = require('../utils/senMailHandler')
+let { sendMail } = require('../utils/senMailHandler')
+let cartSchema = require('../schemas/carts')
+let mongoose = require('mongoose')
 
 /* GET home page. */
 router.post('/register', RegisterValidator, handleResultValidator, async function (req, res, next) {
-    let newUser = userController.CreateAnUser(
-        req.body.username,
-        req.body.password,
-        req.body.email,
-        "69aa8360450df994c1ce6c4c"
-    );
-    await newUser.save()
-    res.send({
-        message: "dang ki thanh cong"
-    })
+    let session = await mongoose.startSession();
+    session.startTransaction()
+    try {
+        let newUser = userController.CreateAnUser(
+            req.body.username,
+            req.body.password,
+            req.body.email,
+            "69aa8360450df994c1ce6c4c"
+        );
+        await newUser.save({ session })
+        let newCart = new cartSchema({
+            user: newUser._id
+        })
+        await newCart.save({ session });
+        await newCart.populate('user')
+        await session.commitTransaction()
+        await session.endSession()
+        res.send({
+            message: "dang ki thanh cong"
+        })
+    } catch (error) {
+        await session.abortTransaction()
+        await session.endSession()
+        res.status(404).send({
+            message: error.message
+        })
+    }
 });
 router.post('/login', async function (req, res, next) {
     let { username, password } = req.body;
@@ -79,7 +98,7 @@ router.post('/forgotpassword', async function (req, res, next) {
         user.resetPasswordTokenExp = new Date(Date.now() + 10 * 60 * 1000);
         await user.save();
         let url = "http://localhost:3000/api/v1/auth/resetpassword/" + user.resetPasswordToken;
-        await sendMail(user.email,url);
+        await sendMail(user.email, url);
     }
     res.send("check mail de biet")
 })
